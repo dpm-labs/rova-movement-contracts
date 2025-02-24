@@ -222,7 +222,7 @@ module rova_sale_addr::rova_sale {
         let sale_config = borrow_global_mut<SaleConfig>(@rova_sale_addr);
         sale_config.withdrawal_address = new_address;
 
-        // Emit role change event
+        // Emit withdrawal address update event
         let caller_addr = signer::address_of(caller);
         event::emit(
             WithdrawalAddressUpdateEvent {
@@ -279,7 +279,7 @@ module rova_sale_addr::rova_sale {
         );
     }
 
-    /// Add/remove addresses for roles (withdrawal role only)
+    /// Add or remove addresses for roles
     public entry fun manage_role(
         caller: &signer,
         role_type: u8,
