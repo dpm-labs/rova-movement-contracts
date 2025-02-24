@@ -130,6 +130,22 @@ module rova_sale_addr::rova_sale_tests {
     }
 
     #[test(admin = @rova_sale_addr, framework = @aptos_framework)]
+    #[expected_failure(abort_code = 0x10007, location = rova_sale)]
+    public entry fun test_set_sale_period_invalid_period_starts_at_in_past(admin: &signer, framework: &signer) {
+        // Setup
+        setup_test(admin, framework);
+        
+
+        // Set sale period
+        let start_time = timestamp::now_seconds();
+        let end_time = start_time + 1000;
+        // Fast forward time
+        timestamp::fast_forward_seconds(1000);
+
+        rova_sale::set_sale_period(admin, start_time, end_time);
+    }
+
+    #[test(admin = @rova_sale_addr, framework = @aptos_framework)]
     public entry fun test_pause_unpause(admin: &signer, framework: &signer) {
         // Setup
         setup_test(admin, framework);

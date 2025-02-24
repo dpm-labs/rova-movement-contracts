@@ -191,7 +191,7 @@ module rova_sale_addr::rova_sale {
     public entry fun withdraw(
         caller: &signer,
         amount: u64
-    ) acquires SaleConfig {        
+    ) acquires SaleConfig {
         // Verify caller is admin
         only_admin(caller);
 
@@ -243,6 +243,8 @@ module rova_sale_addr::rova_sale {
         only_role(caller, roles.manager_role);
 
         assert!(new_starts_at < new_ends_at, error::invalid_argument(EINVALID_SALE_PERIOD));
+        // Check new starts at is in the future
+        assert!(new_starts_at >= timestamp::now_seconds(), error::invalid_argument(EINVALID_SALE_PERIOD));
 
         // Update sale period
         let sale_config = borrow_global_mut<SaleConfig>(@rova_sale_addr);
