@@ -30,6 +30,8 @@ module rova_sale_addr::rova_sale {
     const EINVALID_SALE_PERIOD: u64 = 7;
     /// Unsupported role type
     const EUNSUPPORTED_ROLE_TYPE: u64 = 8;
+    /// Invalid function input
+    const EINVALID_FUNCTION_INPUT: u64 = 9;
 
     // ================================= Constants ================================= //
 
@@ -130,6 +132,11 @@ module rova_sale_addr::rova_sale {
         token_amount: u64,
         payment_amount: u64
     ) acquires SaleConfig, Roles {
+        // Validate inputs
+        assert!(token_amount > 0, error::invalid_argument(EINVALID_FUNCTION_INPUT));
+        assert!(payment_amount > 0, error::invalid_argument(EINVALID_FUNCTION_INPUT));
+        assert!(public_key_bytes.length() == 32 && public_key_bytes != vector::empty<u8>(), error::invalid_argument(EINVALID_FUNCTION_INPUT));
+
         let user_addr = signer::address_of(user);
         let sale_config = borrow_global<SaleConfig>(@rova_sale_addr);
 
@@ -191,7 +198,10 @@ module rova_sale_addr::rova_sale {
     public entry fun withdraw(
         caller: &signer,
         amount: u64
-    ) acquires SaleConfig {        
+    ) acquires SaleConfig {
+        // Validate inputs
+        assert!(amount > 0, error::invalid_argument(EINVALID_FUNCTION_INPUT));
+
         // Verify caller is admin
         only_admin(caller);
 
@@ -213,7 +223,10 @@ module rova_sale_addr::rova_sale {
     public entry fun set_withdrawal_address(
         caller: &signer,
         new_address: address
-    ) acquires Roles, SaleConfig {        
+    ) acquires Roles, SaleConfig {
+        // Validate not zero address
+        assert!(new_address != @0x0, error::invalid_argument(EINVALID_FUNCTION_INPUT));
+
         // Verify caller has withdrawal role
         let roles = borrow_global_mut<Roles>(@rova_sale_addr);
         only_role(caller, roles.withdrawal_role);
