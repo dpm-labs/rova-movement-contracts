@@ -200,7 +200,7 @@ module rova_sale_addr::rova_sale_tests {
         assert!(rova_sale::has_launch_participation_id(launch_participation_id), 2);
     }
 
-    #[test(admin = @rova_sale_addr, framework = @aptos_framework, user = @0x456)]
+     #[test(admin = @rova_sale_addr, framework = @aptos_framework, user = @0x456)]
     #[expected_failure(abort_code = 0x30006, location = rova_sale)]
     public entry fun test_fund_sale_period_not_active(admin: &signer, framework: &signer, user: &signer) {
         // Setup without sale period
@@ -215,6 +215,73 @@ module rova_sale_addr::rova_sale_tests {
 
         // Set time
         timestamp::update_global_time_for_test_secs(50);
+
+        // Fund
+        rova_sale::fund(user, signature_bytes, public_key_bytes, launch_participation_id, token_amount, payment_amount);
+    }
+
+    #[test(admin = @rova_sale_addr, framework = @aptos_framework, user = @0x456)]
+    #[expected_failure(abort_code = 0x10009, location = rova_sale)]
+    public entry fun test_fund_zero_token_amount(admin: &signer, framework: &signer, user: &signer) {
+        // Setup sale
+        setup_sale_config(admin, framework);
+
+        // Generate signature
+        let launch_participation_id = b"cm6zl5lha00003b712h28v7cv";
+        let token_amount = 0;
+        let payment_amount = 1000;
+        let (_signer_addr, signature_bytes, public_key_bytes) = generate_signature(admin, user, launch_participation_id, token_amount, payment_amount);
+
+        // Fund
+        rova_sale::fund(user, signature_bytes, public_key_bytes, launch_participation_id, token_amount, payment_amount);
+    }
+
+    #[test(admin = @rova_sale_addr, framework = @aptos_framework, user = @0x456)]
+    #[expected_failure(abort_code = 0x10009, location = rova_sale)]
+    public entry fun test_fund_zero_payment_amount(admin: &signer, framework: &signer, user: &signer) {
+        // Setup sale
+        setup_sale_config(admin, framework);
+
+        // Generate signature
+        let launch_participation_id = b"cm6zl5lha00003b712h28v7cv";
+        let token_amount = 100;
+        let payment_amount = 0;
+        let (_signer_addr, signature_bytes, public_key_bytes) = generate_signature(admin, user, launch_participation_id, token_amount, payment_amount);
+
+        // Fund
+        rova_sale::fund(user, signature_bytes, public_key_bytes, launch_participation_id, token_amount, payment_amount);
+    }
+
+    #[test(admin = @rova_sale_addr, framework = @aptos_framework, user = @0x456)]
+    #[expected_failure(abort_code = 0x10009, location = rova_sale)]
+    public entry fun test_fund_empty_public_key_bytes(admin: &signer, framework: &signer, user: &signer) {
+        // Setup sale
+        setup_sale_config(admin, framework);
+
+        // Generate signature
+        let launch_participation_id = b"cm6zl5lha00003b712h28v7cv";
+        let token_amount = 100;
+        let payment_amount = 0;
+        let (_signer_addr, signature_bytes, public_key_bytes) = generate_signature(admin, user, launch_participation_id, token_amount, payment_amount);
+
+        // Fund
+        rova_sale::fund(user, signature_bytes, vector::empty<u8>(), launch_participation_id, token_amount, payment_amount);
+    }
+
+    #[test(admin = @rova_sale_addr, framework = @aptos_framework, user = @0x456)]
+    #[expected_failure(abort_code = 0x10009, location = rova_sale)]
+    public entry fun test_fund_invalid_public_key_bytes_length(admin: &signer, framework: &signer, user: &signer) {
+        // Setup sale
+        setup_sale_config(admin, framework);
+
+        // Generate signature
+        let launch_participation_id = b"cm6zl5lha00003b712h28v7cv";
+        let token_amount = 100;
+        let payment_amount = 0;
+        let (_signer_addr, signature_bytes, public_key_bytes) = generate_signature(admin, user, launch_participation_id, token_amount, payment_amount);
+
+        // Append invalid length
+        vector::append(&mut public_key_bytes, bcs::to_bytes(&1));
 
         // Fund
         rova_sale::fund(user, signature_bytes, public_key_bytes, launch_participation_id, token_amount, payment_amount);
@@ -366,6 +433,19 @@ module rova_sale_addr::rova_sale_tests {
     }
 
     #[test(admin = @rova_sale_addr, framework = @aptos_framework)]
+    #[expected_failure(abort_code = 0x10009, location = rova_sale)]
+    public entry fun test_withdraw_zero_amount(
+        admin: &signer,
+        framework: &signer
+    ) {
+        // Setup
+        setup_test(admin, framework);
+        
+        // Try to withdraw without funds
+        rova_sale::withdraw(admin, 0);
+    }
+
+    #[test(admin = @rova_sale_addr, framework = @aptos_framework)]
     #[expected_failure(abort_code = 0x10006, location = aptos_framework::coin)]
     public entry fun test_withdraw_invalid_amount(
         admin: &signer,
@@ -403,6 +483,17 @@ module rova_sale_addr::rova_sale_tests {
 
         // Verify withdrawal address
         assert!(rova_sale::get_withdrawal_address() == new_withdrawal_address, 0);
+    }
+
+    #[test(admin = @rova_sale_addr, framework = @aptos_framework)]
+    #[expected_failure(abort_code = 0x10009, location = rova_sale)]
+    public entry fun test_set_withdrawal_address_zero_address(admin: &signer, framework: &signer) {
+        // Setup
+        setup_test(admin, framework);
+
+        // Try to set withdrawal address
+        let new_withdrawal_address = @0x0;
+        rova_sale::set_withdrawal_address(admin, new_withdrawal_address);
     }
 
     #[test(admin = @rova_sale_addr, framework = @aptos_framework)]
