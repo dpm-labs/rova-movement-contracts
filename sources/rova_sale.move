@@ -302,16 +302,7 @@ module rova_sale_addr::rova_sale {
             abort error::invalid_argument(EUNSUPPORTED_ROLE_TYPE)
         };
 
-        manage_role_vector(role_vec, addr_to_manage, is_add);
-
-        // Emit role change event
-        event::emit(
-            RoleChangeEvent {
-                role_type,
-                address: addr_to_manage,
-                is_added: is_add
-            }
-        );
+        manage_role_vector(role_type, role_vec, addr_to_manage, is_add);
     }
 
     // ================================= View Functions ================================= //
@@ -390,6 +381,7 @@ module rova_sale_addr::rova_sale {
     }
 
     fun manage_role_vector(
+        role_type: u8,
         role_vec: &mut vector<address>,
         addr_to_manage: address,
         is_add: bool
@@ -398,9 +390,26 @@ module rova_sale_addr::rova_sale {
         if (is_add) {
             if (!found) {
                 vector::push_back(role_vec, addr_to_manage);
+                // Emit role change event
+                event::emit(
+                    RoleChangeEvent {
+                        role_type,
+                        address: addr_to_manage,
+                        is_added: true
+                    }
+                );
             };
+            
         } else if (found) {
             vector::remove(role_vec, index);
+            // Emit role change event
+            event::emit(
+                RoleChangeEvent {
+                    role_type,
+                    address: addr_to_manage,
+                    is_added: false
+                }
+            );
         };
     }
 
