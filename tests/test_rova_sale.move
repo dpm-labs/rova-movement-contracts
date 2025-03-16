@@ -181,7 +181,7 @@ module rova_sale_addr::rova_sale_tests {
         let launch_participation_id = b"cm6zl5lha00003b712h28v7cv";
         let token_amount = 100;
         let payment_amount = 1000;
-        let (_signer_addr, signature_bytes, public_key_bytes) = generate_signature(admin, user, launch_participation_id, token_amount, payment_amount);
+        let (_signer_addr, signature_bytes, _public_key_bytes) = generate_signature(admin, user, launch_participation_id, token_amount, payment_amount);
 
         // Fund
         let user_addr = signer::address_of(user);

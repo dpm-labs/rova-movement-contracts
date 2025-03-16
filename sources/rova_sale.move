@@ -138,7 +138,7 @@ module rova_sale_addr::rova_sale {
         assert!(public_key_bytes.length() == 32 && public_key_bytes != vector::empty<u8>(), error::invalid_argument(EINVALID_FUNCTION_INPUT));
 
         let user_addr = signer::address_of(user);
-        let sale_config = borrow_global<SaleConfig>(@rova_sale_addr);
+        let sale_config = borrow_global_mut<SaleConfig>(@rova_sale_addr);
 
         // Verify sale is active
         let time_now = timestamp::now_seconds();
@@ -149,7 +149,7 @@ module rova_sale_addr::rova_sale {
 
         // Verify launch participation id hasn't been used (prevent replay)
         assert!(
-            !has_launch_participation_id(launch_participation_id),
+            !table::contains(&sale_config.launch_participation_registry, launch_participation_id),
             error::invalid_argument(EINVALID_LAUNCH_PARTICIPATION_ID)
         );
         
@@ -181,7 +181,6 @@ module rova_sale_addr::rova_sale {
         aptos_account::deposit_coins(@rova_sale_addr, coin);
 
         // Register launch_participation_id as used
-        let sale_config = borrow_global_mut<SaleConfig>(@rova_sale_addr);
         table::add(&mut sale_config.launch_participation_registry, launch_participation_id, true);
 
         // Emit funding event
