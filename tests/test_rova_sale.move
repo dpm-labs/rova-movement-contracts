@@ -49,13 +49,17 @@ module rova_sale_addr::rova_sale_tests {
         setup_test(admin, framework);
         
         // Test adding signer role
-        let new_signer = @0x123;
-        rova_sale::manage_role(admin, 1, new_signer, true);
-        assert!(rova_sale::has_role(new_signer, 1), 0);
+        let new_signer_1 = @0x123;
+        rova_sale::manage_role(admin, 1, new_signer_1, true);
+        assert!(rova_sale::has_role(new_signer_1, 1), 0);
+     
 
-        // Test removing signer role
-        rova_sale::manage_role(admin, 1, new_signer, false);
-        assert!(!rova_sale::has_role(new_signer, 1), 1);
+        // Add another signer and remove existing signer
+        let new_signer_2 = @0x456;
+        rova_sale::manage_role(admin, 1, new_signer_2, true);
+        assert!(rova_sale::has_role(new_signer_2, 1), 1);
+        rova_sale::manage_role(admin, 1, new_signer_1, false);
+        assert!(!rova_sale::has_role(new_signer_1, 1), 2);
     }
 
     #[test(admin = @rova_sale_addr, framework = @aptos_framework)]
@@ -99,6 +103,20 @@ module rova_sale_addr::rova_sale_tests {
 
         // Try to manage role
         rova_sale::manage_role(admin, 4, WITHDRAWAL_ADDR, true);
+    }
+
+    #[test(admin = @rova_sale_addr, framework = @aptos_framework)]
+    #[expected_failure(abort_code = 0x30008, location = rova_sale)]
+    public entry fun test_manage_role_empty_role_unsupported_role_type(admin: &signer, framework: &signer) {
+        // Setup
+        setup_test(admin, framework);
+
+        // Add signer role
+        let new_signer = @0x123456;
+        rova_sale::manage_role(admin, 1, new_signer, true);
+
+        // Try to remove signer role (only one member)
+        rova_sale::manage_role(admin, 1, new_signer, false);
     }
 
     #[test(admin = @rova_sale_addr, framework = @aptos_framework)]
@@ -252,7 +270,9 @@ module rova_sale_addr::rova_sale_tests {
         let payment_amount = 100;
         let (signer_addr, signature_bytes, public_key_bytes) = generate_signature(admin, user, launch_participation_id, token_amount, payment_amount);
 
-        // Remove signer from signer role
+        // Add another signer to remove existing signer from signer role
+        let new_signer = @0x123456;
+        rova_sale::manage_role(admin, 1, new_signer, true);
         rova_sale::manage_role(admin, 1, signer_addr, false);
     
         // Fund

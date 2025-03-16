@@ -386,6 +386,10 @@ module rova_sale_addr::rova_sale {
         addr_to_manage: address,
         is_add: bool
     ) {
+        if (!is_add && vector::length(role_vec) == 1) {
+            abort error::invalid_state(EUNSUPPORTED_ROLE_TYPE);
+        };
+
         let (found, index) = vector::index_of(role_vec, &addr_to_manage);
         if (is_add) {
             if (!found) {
